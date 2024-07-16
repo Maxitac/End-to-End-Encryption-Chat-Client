@@ -60,19 +60,13 @@ async function computeDH (myPrivateKey, theirPublicKey) {
     { name: 'HMAC', hash: 'SHA-256', length: 256 }, true, ['sign', 'verify'])
 }
 
-async function verifyWithECDSA(publicKeyPem, signature, data) {
-  return new Promise((resolve, reject) => {
-    try {
-      const publicKey = forge.pki.publicKeyFromPem(publicKeyPem);
-      const md = forge.md.sha256.create();
-      md.update(data, 'utf8');
-      const signatureBytes = forge.util.hexToBytes(forge.util.binary.hex.encode(signature));
-      const verified = publicKey.verify(md.digest().bytes(), signatureBytes);
-      resolve(verified);
-    } catch (err) {
-      reject(err);
-    }
-  });
+async function verifyWithECDSA (publicKey, message, signature) {
+  // returns true if signature is correct for message and publicKey
+  // publicKey should be pair.pub from generateECDSA
+  // message must be a string
+  // signature must be exact output of signWithECDSA
+  // returns true if verification is successful and false is fails
+  return await subtle.verify({ name: 'ECDSA', hash: { name: 'SHA-384' } }, publicKey, signature, Buffer.from(message))
 }
 
 async function HMACtoAESKey (key, data, exportToArrayBuffer = false) {
